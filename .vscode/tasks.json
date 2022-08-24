@@ -1,0 +1,99 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Get Dependencies",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${workspaceFolder}/examples/${input:example}",
+                "BOARD=${input:board}",
+                "get-deps"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${workspaceFolder}/examples/${input:example}",
+                "BOARD=${input:board}",
+                "LOG=2",
+                "all"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${workspaceFolder}/examples/${input:example}",
+                "BOARD=${input:board}",
+                "clean"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Flash",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${workspaceFolder}/examples/${input:example}",
+                "BOARD=${input:board}",
+                "clean",
+                "all",
+                "flash"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+          "id": "example",
+          "type": "pickString",
+          "description": "Example to use",
+          "options": [
+            "device/audio_4_channel_mic",
+            "device/audio_test",
+            "device/audio_test_multi_rate",
+            "device/board_test",
+            "device/cdc_dual_ports",
+            "device/cdc_msc",
+            "device/cdc_msc_freertos",
+            "device/cdc_uac2",
+            "device/uac2_headset"
+          ],
+          "default": "device/board_test"
+        },
+        {
+          "id": "board",
+          "type": "pickString",
+          "description": "Board to use",
+          "options": [
+            "stm32u575nucleo",
+            "lpcxpresso55s28"
+          ],
+          "default": "stm32u575nucleo"
+        },
+        {
+          "id": "speed",
+          "type": "pickString",
+          "description": "Speed to use",
+          "options": [
+            "full",
+            "high"
+          ],
+          "default": "full"
+        }
+    ]
+}
