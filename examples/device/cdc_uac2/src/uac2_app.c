@@ -37,8 +37,8 @@
 //--------------------------------------------------------------------+
 
 // List of supported sample rates
-const uint32_t sample_rates[] = {44100, 48000};
-uint32_t current_sample_rate  = 44100;
+const uint32_t sample_rates[] = {48000};
+uint32_t current_sample_rate  = 48000;
 
 #define N_SAMPLE_RATES  TU_ARRAY_SIZE(sample_rates)
 
@@ -278,12 +278,12 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const * p_reque
 bool tud_audio_rx_done_pre_read_cb(uint8_t rhport, uint16_t n_bytes_received, uint8_t func_id, uint8_t ep_out, uint8_t cur_alt_setting)
 {
   (void)rhport;
+  (void)n_bytes_received;
   (void)func_id;
   (void)ep_out;
   (void)cur_alt_setting;
 
-  spk_data_size = tud_audio_read(spk_buf, n_bytes_received);
-  tud_audio_write(spk_buf, n_bytes_received);
+  // This callback could be used to receive speaker data separately
 
   return true;
 }
@@ -313,4 +313,19 @@ void led_blinking_task(void)
 
   board_led_write(led_state);
   led_state = 1 - led_state;
+}
+
+void audio_task(void)
+{
+  // When new data arrived, copy data from speaker buffer, to microphone buffer
+  // and send it over
+  // Only support speaker & headphone both have the same resolution
+  // If one is 16bit another is 24bit be care of LOUD noise !
+  uint16_t available_bytes = tud_audio_available();
+
+  if (available_bytes) {
+    spk_data_size = tud_audio_read(spk_buf, available_bytes);
+    tud_audio_write((uint8_t *)spk_buf, (uint16_t)available_bytes);
+  }
+
 }

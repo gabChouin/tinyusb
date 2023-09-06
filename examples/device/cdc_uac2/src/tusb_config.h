@@ -114,7 +114,7 @@ extern "C" {
 #if defined(__RX__)
 #define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE                         48000     // 16bit/48kHz is the best quality for Renesas RX
 #else
-#define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE                         96000     // 24bit/96kHz is the best quality for full-speed, high-speed is needed beyond this
+#define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE                         48000     // 24bit/96kHz is the best quality for full-speed, high-speed is needed beyond this
 #endif
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX                           1
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX                           1         // Changed
@@ -133,10 +133,10 @@ extern "C" {
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX                  8
 #else
 // 24bit in 32bit slots
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX          4
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX                  24
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX          4
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX                  24
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX          2
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX                  16
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX          2
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX                  16
 #endif
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
