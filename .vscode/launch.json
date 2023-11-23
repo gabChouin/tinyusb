@@ -3,5 +3,54 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": []
+    "configurations": [
+        {
+            "name": "OpenOCD st-link STM32U5 1",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "examples/device/cdc_uac2/_build/stm32u575nucleo/cdc_uac2.elf",            // "executable": "examples/device/uac2_headset/_build/stm32u575nucleo/uac2_headset.elf",
+            "servertype": "openocd",
+            "interface": "swd",
+            "device": "STM32U5XXX",
+            "svdFile": "${workspaceFolder}/.vscode/STM32U5xx.svd",
+            "runToEntryPoint": "main",
+            "openOCDLaunchCommands": [
+                "tcl_port 6666",
+                "telnet_port 4444",
+                "hla_serial ${input:stLinkNo1SerialNumber}"
+            ],
+            "searchDir": [
+                "/home/${env:USER}/opt/xPacks/@xpack-dev-tools/openocd/0.11.0-5.1/.content/scripts"
+            ],
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32u5x.cfg"
+            ],
+            "windows": {
+                "gdbPath": "${workspaceFolder}/.environment/envs/${workspaceFolderBasename}/Library/bin/arm-none-eabi-gdb.exe"
+            },
+            "linux": {
+                "gdbPath": "/usr/local/bin/arm-none-eabi-gdb"
+            },
+            "osx": {
+                "gdbPath": "${workspaceFolder}/.environment/envs/${workspaceFolderBasename}/bin/arm-none-eabi-gdb"
+            },
+            "presentation": {
+                "group": "2 OpenOCD"
+            }
+        },
+    ],
+    "inputs": [
+        {
+            "id": "stLinkNo1SerialNumber",
+            "type": "command",
+            "command": "extension.commandvariable.file.content",
+            "args": {
+                "fileName": "${workspaceFolder}/.vscode/.launch.cfg",
+                "key": "ST_LINK_NO1_SN",
+                "default": ""
+            }
+        }
+    ]
 }
