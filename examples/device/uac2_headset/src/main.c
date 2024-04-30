@@ -35,11 +35,13 @@
 //--------------------------------------------------------------------+
 
 // List of supported sample rates
-const uint32_t sample_rates[] = {44100, 48000};
-
-uint32_t current_sample_rate  = 44100;
-
+const uint32_t sample_rates[] = {96000};
+uint32_t current_sample_rate  = 96000;
 #define N_SAMPLE_RATES  TU_ARRAY_SIZE(sample_rates)
+
+const uint32_t mic_sample_rates[] = {48000};
+uint32_t mic_current_sample_rate = 48000;
+#define MIC_N_SAMPLE_RATES  TU_ARRAY_SIZE(mic_sample_rates)
 
 /* Blink pattern
  * - 25 ms   : streaming data
@@ -151,44 +153,85 @@ void tud_resume_cb(void)
 // Helper for clock get requests
 static bool tud_audio_clock_get_request(uint8_t rhport, audio_control_request_t const *request)
 {
-  TU_ASSERT(request->bEntityID == UAC2_ENTITY_CLOCK);
-
-  if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
+  if (request->bEntityID == UAC2_ENTITY_CLOCK) 
   {
-    if (request->bRequest == AUDIO_CS_REQ_CUR)
+    if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
     {
-      TU_LOG1("Clock get current freq %" PRIu32 "\r\n", current_sample_rate);
+      if (request->bRequest == AUDIO_CS_REQ_CUR)
+      {
+        TU_LOG1("Clock get current freq %" PRIu32 "\r\n", current_sample_rate);
 
-      audio_control_cur_4_t curf = { (int32_t) tu_htole32(current_sample_rate) };
-      return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &curf, sizeof(curf));
-    }
-    else if (request->bRequest == AUDIO_CS_REQ_RANGE)
-    {
-      audio_control_range_4_n_t(N_SAMPLE_RATES) rangef =
-      {
-        .wNumSubRanges = tu_htole16(N_SAMPLE_RATES)
-      };
-      TU_LOG1("Clock get %d freq ranges\r\n", N_SAMPLE_RATES);
-      for(uint8_t i = 0; i < N_SAMPLE_RATES; i++)
-      {
-        rangef.subrange[i].bMin = (int32_t) sample_rates[i];
-        rangef.subrange[i].bMax = (int32_t) sample_rates[i];
-        rangef.subrange[i].bRes = 0;
-        TU_LOG1("Range %d (%d, %d, %d)\r\n", i, (int)rangef.subrange[i].bMin, (int)rangef.subrange[i].bMax, (int)rangef.subrange[i].bRes);
+        audio_control_cur_4_t curf = { (int32_t) tu_htole32(current_sample_rate) };
+        return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &curf, sizeof(curf));
       }
+      else if (request->bRequest == AUDIO_CS_REQ_RANGE)
+      {
+        audio_control_range_4_n_t(N_SAMPLE_RATES) rangef =
+        {
+          .wNumSubRanges = tu_htole16(N_SAMPLE_RATES)
+        };
+        TU_LOG1("Clock get %d freq ranges\r\n", N_SAMPLE_RATES);
+        for(uint8_t i = 0; i < N_SAMPLE_RATES; i++)
+        {
+          rangef.subrange[i].bMin = (int32_t) sample_rates[i];
+          rangef.subrange[i].bMax = (int32_t) sample_rates[i];
+          rangef.subrange[i].bRes = 0;
+          TU_LOG1("Range %d (%d, %d, %d)\r\n", i, (int)rangef.subrange[i].bMin, (int)rangef.subrange[i].bMax, (int)rangef.subrange[i].bRes);
+        }
 
-      return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &rangef, sizeof(rangef));
+        return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &rangef, sizeof(rangef));
+      }
     }
-  }
-  else if (request->bControlSelector == AUDIO_CS_CTRL_CLK_VALID &&
-           request->bRequest == AUDIO_CS_REQ_CUR)
+    else if (request->bControlSelector == AUDIO_CS_CTRL_CLK_VALID &&
+            request->bRequest == AUDIO_CS_REQ_CUR)
+    {
+      audio_control_cur_1_t cur_valid = { .bCur = 1 };
+      TU_LOG1("Clock get is valid %u\r\n", cur_valid.bCur);
+      return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &cur_valid, sizeof(cur_valid));
+    }
+    TU_LOG1("Clock get request not supported, entity = %u, selector = %u, request = %u\r\n",
+            request->bEntityID, request->bControlSelector, request->bRequest);
+    return false;
+  } else if (request->bEntityID == UAC2_ENTITY_MIC_CLOCK) 
   {
-    audio_control_cur_1_t cur_valid = { .bCur = 1 };
-    TU_LOG1("Clock get is valid %u\r\n", cur_valid.bCur);
-    return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &cur_valid, sizeof(cur_valid));
+    if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
+    {
+      if (request->bRequest == AUDIO_CS_REQ_CUR)
+      {
+        TU_LOG1("MIC Clock get current freq %" PRIu32 "\r\n", mic_current_sample_rate);
+
+        audio_control_cur_4_t curf = { (int32_t) tu_htole32(mic_current_sample_rate) };
+        return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &curf, sizeof(curf));
+      }
+      else if (request->bRequest == AUDIO_CS_REQ_RANGE)
+      {
+        audio_control_range_4_n_t(MIC_N_SAMPLE_RATES) rangef =
+        {
+          .wNumSubRanges = tu_htole16(MIC_N_SAMPLE_RATES)
+        };
+        TU_LOG1("Clock get %d freq ranges\r\n", MIC_N_SAMPLE_RATES);
+        for(uint8_t i = 0; i < MIC_N_SAMPLE_RATES; i++)
+        {
+          rangef.subrange[i].bMin = (int32_t) mic_sample_rates[i];
+          rangef.subrange[i].bMax = (int32_t) mic_sample_rates[i];
+          rangef.subrange[i].bRes = 0;
+          TU_LOG1("Range %d (%d, %d, %d)\r\n", i, (int)rangef.subrange[i].bMin, (int)rangef.subrange[i].bMax, (int)rangef.subrange[i].bRes);
+        }
+
+        return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &rangef, sizeof(rangef));
+      }
+    }
+    else if (request->bControlSelector == AUDIO_CS_CTRL_CLK_VALID &&
+            request->bRequest == AUDIO_CS_REQ_CUR)
+    {
+      audio_control_cur_1_t cur_valid = { .bCur = 1 };
+      TU_LOG1("MIC Clock get is valid %u\r\n", cur_valid.bCur);
+      return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const *)request, &cur_valid, sizeof(cur_valid));
+    }
+    TU_LOG1("MIC Clock get request not supported, entity = %u, selector = %u, request = %u\r\n",
+            request->bEntityID, request->bControlSelector, request->bRequest);
+    return false;
   }
-  TU_LOG1("Clock get request not supported, entity = %u, selector = %u, request = %u\r\n",
-          request->bEntityID, request->bControlSelector, request->bRequest);
   return false;
 }
 
@@ -197,25 +240,48 @@ static bool tud_audio_clock_set_request(uint8_t rhport, audio_control_request_t 
 {
   (void)rhport;
 
-  TU_ASSERT(request->bEntityID == UAC2_ENTITY_CLOCK);
-  TU_VERIFY(request->bRequest == AUDIO_CS_REQ_CUR);
-
-  if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
+  if (request->bEntityID == UAC2_ENTITY_CLOCK)
   {
-    TU_VERIFY(request->wLength == sizeof(audio_control_cur_4_t));
+    TU_VERIFY(request->bRequest == AUDIO_CS_REQ_CUR);
 
-    current_sample_rate = (uint32_t) ((audio_control_cur_4_t const *)buf)->bCur;
+    if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
+    {
+      TU_VERIFY(request->wLength == sizeof(audio_control_cur_4_t));
 
-    TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", current_sample_rate);
+      current_sample_rate = (uint32_t) ((audio_control_cur_4_t const *)buf)->bCur;
 
-    return true;
-  }
-  else
+      TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", current_sample_rate);
+
+      return true;
+    }
+    else
+    {
+      TU_LOG1("Clock set request not supported, entity = %u, selector = %u, request = %u\r\n",
+              request->bEntityID, request->bControlSelector, request->bRequest);
+      return false;
+    }
+  } else if (request->bEntityID == UAC2_ENTITY_MIC_CLOCK)
   {
-    TU_LOG1("Clock set request not supported, entity = %u, selector = %u, request = %u\r\n",
-            request->bEntityID, request->bControlSelector, request->bRequest);
-    return false;
+    TU_VERIFY(request->bRequest == AUDIO_CS_REQ_CUR);
+
+    if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
+    {
+      TU_VERIFY(request->wLength == sizeof(audio_control_cur_4_t));
+
+      mic_current_sample_rate = (uint32_t) ((audio_control_cur_4_t const *)buf)->bCur;
+
+      TU_LOG1("MIC Clock set current freq: %" PRIu32 "\r\n", mic_current_sample_rate);
+
+      return true;
+    }
+    else
+    {
+      TU_LOG1("MIC Clock set request not supported, entity = %u, selector = %u, request = %u\r\n",
+              request->bEntityID, request->bControlSelector, request->bRequest);
+      return false;
+    }
   }
+  return false;
 }
 
 // Helper for feature unit get requests
@@ -299,7 +365,7 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport, tusb_control_request_t const *p
 {
   audio_control_request_t const *request = (audio_control_request_t const *)p_request;
 
-  if (request->bEntityID == UAC2_ENTITY_CLOCK)
+  if ((request->bEntityID == UAC2_ENTITY_CLOCK) || (request->bEntityID == UAC2_ENTITY_MIC_CLOCK))
     return tud_audio_clock_get_request(rhport, request);
   if (request->bEntityID == UAC2_ENTITY_SPK_FEATURE_UNIT)
     return tud_audio_feature_unit_get_request(rhport, request);
@@ -318,7 +384,7 @@ bool tud_audio_set_req_entity_cb(uint8_t rhport, tusb_control_request_t const *p
 
   if (request->bEntityID == UAC2_ENTITY_SPK_FEATURE_UNIT)
     return tud_audio_feature_unit_set_request(rhport, request, buf);
-  if (request->bEntityID == UAC2_ENTITY_CLOCK)
+  if ((request->bEntityID == UAC2_ENTITY_CLOCK) || (request->bEntityID == UAC2_ENTITY_MIC_CLOCK))
     return tud_audio_clock_set_request(rhport, request, buf);
   TU_LOG1("Set request not handled, entity = %d, selector = %d, request = %d\r\n",
           request->bEntityID, request->bControlSelector, request->bRequest);
