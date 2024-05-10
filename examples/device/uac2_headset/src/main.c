@@ -453,6 +453,7 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport, uint8_t itf, uint8_t ep_in, u
 
 void audio_task(void)
 {
+  uint8_t sample_rate_ratio = current_sample_rate / mic_current_sample_rate;
   // When new data arrived, copy data from speaker buffer, to microphone buffer
   // and send it over
   // Only support speaker & headphone both have the same resolution
@@ -470,8 +471,10 @@ void audio_task(void)
         int32_t left = *src++;
         int32_t right = *src++;
         *dst++ = (int16_t) ((left >> 1) + (right >> 1));
+        /* speaker sample rate is 2x microphone. */
+        src += 2;
       }
-      tud_audio_write((uint8_t *)mic_buf, (uint16_t) (spk_data_size / 2));
+      tud_audio_write((uint8_t *)mic_buf, (uint16_t) (spk_data_size / 2 / sample_rate_ratio));
       spk_data_size = 0;
     }
     else if (current_resolution == 24)
@@ -485,8 +488,10 @@ void audio_task(void)
         int32_t left = *src++;
         int32_t right = *src++;
         *dst++ = (int32_t) ((uint32_t) ((left >> 1) + (right >> 1)) & 0xffffff00ul);
+        /* speaker sample rate is 2x microphone. */
+        src += 2;
       }
-      tud_audio_write((uint8_t *)mic_buf, (uint16_t) (spk_data_size / 2));
+      tud_audio_write((uint8_t *)mic_buf, (uint16_t) (spk_data_size / 2 / sample_rate_ratio));
       spk_data_size = 0;
     }
   }
