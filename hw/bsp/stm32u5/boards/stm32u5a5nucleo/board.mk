@@ -9,3 +9,5 @@ SRC_S += $(ST_CMSIS)/Source/Templates/gcc/startup_stm32u5a5xx.s
 
 # For flash-jlink target
 JLINK_DEVICE = stm32u575zi
+# For flash-pyocd target
+PYOCD_TARGET = STM32U5A5AJHxQ

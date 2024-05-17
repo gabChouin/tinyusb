@@ -1,3 +1,9 @@
 {
-    "makefile.extensionOutputFolder": "./.vscode"
+    "makefile.configurations": [
+        {
+            "name": "uac2_headset",
+            "makeDirectory": "./examples/device/uac2_headset",
+        },
+    ],
+    "makefile.makefilePath": "examples/device/uac2_headset"
 }

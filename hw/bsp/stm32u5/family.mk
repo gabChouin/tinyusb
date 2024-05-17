@@ -46,4 +46,4 @@ INC += \
 	$(TOP)/$(BOARD_PATH)
 
 # flash target using on-board stlink
-flash: flash-stlink
+flash: flash-pyocd
