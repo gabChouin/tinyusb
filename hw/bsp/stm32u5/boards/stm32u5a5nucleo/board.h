@@ -40,13 +40,13 @@ extern "C"
 #include "stm32u5xx_ll_tim.h"
 
 // LED GREEN
-#define LED_PORT GPIOC
-#define LED_PIN GPIO_PIN_7
+#define LED_PORT GPIOA
+#define LED_PIN GPIO_PIN_1
 #define LED_STATE_ON 1
 
 // BUTTON
-#define BUTTON_PORT GPIOC
-#define BUTTON_PIN GPIO_PIN_13
+#define BUTTON_PORT GPIOH
+#define BUTTON_PIN GPIO_PIN_10
 #define BUTTON_STATE_ACTIVE 1
 
 // UART Enable for STLink VCOM

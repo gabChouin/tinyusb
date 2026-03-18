@@ -82,7 +82,8 @@ def main():
             {
                 'name': board,
                 'description': "Build preset for the " + board + " board",
-                'configurePreset': board
+                'configurePreset': board,
+                'configuration': 'RelWithDebInfo'
             }
             for board in board_list
         ], key=lambda x: x['name']

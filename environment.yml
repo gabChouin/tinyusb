@@ -1,0 +1,22 @@
+# Micromamba environment file
+# https://marketplace.visualstudio.com/items?itemName=corker.vscode-micromamba
+
+name: TinyUSB
+channels:
+  - memfault
+  - conda-forge
+  - defaults
+  - msarahan
+dependencies:
+  # Build tools
+  - gcc-arm-none-eabi==10.3.2021.10
+  - make==4.3
+  - ninja==1.11.0
+  - cmake==3.23.3
+
+  # Python packages
+  - python==3.10.5
+  - pip:
+    - pyocd==0.36.0
+
+

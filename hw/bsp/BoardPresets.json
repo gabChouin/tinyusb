@@ -1952,7 +1952,8 @@
     {
       "name": "stm32u5a5nucleo",
       "description": "Build preset for the stm32u5a5nucleo board",
-      "configurePreset": "stm32u5a5nucleo"
+      "configurePreset": "stm32u5a5nucleo",
+      "configuration": "RelWithDebInfo"
     },
     {
       "name": "stm32wb55nucleo",
