@@ -61,7 +61,7 @@ int main(void) {
     // tinyusb host task
     tuh_task();
     led_blinking_task();
-    hid_app_task();
+    // hid_app_task();
   }
 }
 

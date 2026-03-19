@@ -57,6 +57,13 @@ extern "C"
 #define UART_TX_PIN GPIO_PIN_9
 #define UART_RX_PIN GPIO_PIN_10
 
+#define ST_LINK_UART_DEV UART4
+#define ST_LINK_UART_CLK_EN __HAL_RCC_UART4_CLK_ENABLE
+#define ST_LINK_UART_GPIO_PORT GPIOC
+#define ST_LINK_UART_GPIO_AF GPIO_AF8_UART4
+#define ST_LINK_UART_TX_PIN GPIO_PIN_10
+#define ST_LINK_UART_RX_PIN GPIO_PIN_11
+
 #define VBUS_SENSE_EN 0
 
 //--------------------------------------------------------------------+
@@ -128,6 +135,13 @@ static inline void SystemClock_Config(void) {
   uart_clk_init.PeriphClockSelection = RCC_PERIPHCLK_USART1;
   uart_clk_init.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   if (HAL_RCCEx_PeriphCLKConfig(&uart_clk_init) != HAL_OK) {
+    Error_Handler();
+  }
+
+  RCC_PeriphCLKInitTypeDef uart4_clk_init = { 0};
+  uart4_clk_init.PeriphClockSelection = RCC_PERIPHCLK_UART4;
+  uart4_clk_init.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+  if (HAL_RCCEx_PeriphCLKConfig(&uart4_clk_init) != HAL_OK) {
     Error_Handler();
   }
 }

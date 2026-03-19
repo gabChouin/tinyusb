@@ -802,6 +802,7 @@ uint8_t tuh_hid_parse_report_descriptor(tuh_hid_report_info_t* report_info_arr, 
     desc_report += size;
     desc_len -= size;
   }
+  TU_LOG_DRV("desc_len = %u\r\n", desc_len);
 
   for (uint8_t i = 0; i < report_num; i++) {
     info = report_info_arr + i;

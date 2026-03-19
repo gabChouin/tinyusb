@@ -144,11 +144,20 @@ static uint8_t ds4_instance = 0;
 static uint8_t motor_left = 0;
 static uint8_t motor_right = 0;
 
+#define MAX_REPORT  4
+// Each HID instance can has multiple reports
+static struct {
+  uint8_t report_count;
+  tuh_hid_report_info_t report_info[MAX_REPORT];
+} hid_info[CFG_TUH_HID];
+
 // check if device is Sony DualShock 4
 static inline bool is_sony_ds4(uint8_t dev_addr)
 {
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
+
+  return true; // for testing with any controller, ignore VID/PID check
 
   return ( (vid == 0x054c && (pid == 0x09cc || pid == 0x05c4)) // Sony DualShock4
            || (vid == 0x0f0d && pid == 0x005e)                 // Hori FC4
@@ -201,23 +210,34 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   printf("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   printf("VID = %04x, PID = %04x\r\n", vid, pid);
 
-  // Sony DualShock 4 [CUH-ZCT2x]
-  if ( is_sony_ds4(dev_addr) )
-  {
-    if (!ds4_mounted)
-    {
-      ds4_dev_addr = dev_addr;
-      ds4_instance = instance;
-      motor_left = 0;
-      motor_right = 0;
-      ds4_mounted = true;
-    }
-    // request to receive report
-    // tuh_hid_report_received_cb() will be invoked when report is available
-    if ( !tuh_hid_receive_report(dev_addr, instance) )
-    {
-      printf("Error: cannot request to receive report\r\n");
-    }
+  // Interface protocol (hid_interface_protocol_enum_t)
+  const char *protocol_str[] = { "None", "Keyboard", "Mouse" };
+  uint8_t const itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
+
+  printf("HID Interface Protocol = %s\r\n", protocol_str[itf_protocol]);
+
+  // By default host stack will use activate boot protocol on supported interface.
+  // Therefore for this simple example, we only need to parse generic report descriptor (with built-in parser)
+  if (itf_protocol == HID_ITF_PROTOCOL_NONE) {
+    hid_info[instance].report_count = tuh_hid_parse_report_descriptor(hid_info[instance].report_info, MAX_REPORT,
+                                                                      desc_report, desc_len);
+    printf("HID instance %d has %u reports \r\n", instance, hid_info[instance].report_count);
+
+    // Sony DualShock 4 [CUH-ZCT2x]
+    if (is_sony_ds4(dev_addr)) {
+        if (!ds4_mounted) {
+            ds4_dev_addr = dev_addr;
+            ds4_instance = instance;
+            motor_left = 0;
+            motor_right = 0;
+            ds4_mounted = true;
+        }
+        // request to receive report
+        // tuh_hid_report_received_cb() will be invoked when report is available
+        if ( !tuh_hid_receive_report(dev_addr, instance)) {
+            printf("Error: cannot request to receive report\r\n");
+        }
+      }
   }
 }
 
@@ -310,6 +330,9 @@ static void process_sony_ds4(uint8_t const* report, uint16_t len)
 
 // Invoked when received report from device via interrupt endpoint
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const *report, uint16_t len) {
+  
+  printf("HID report received from device address = %d, instance = %d\r\n", dev_addr, instance);
+  
   if (is_sony_ds4(dev_addr)) {
     process_sony_ds4(report, len);
   }

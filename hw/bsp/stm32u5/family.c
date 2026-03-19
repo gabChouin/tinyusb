@@ -71,6 +71,7 @@ void OTG_HS_IRQHandler(void) {
 //--------------------------------------------------------------------+
 
 UART_HandleTypeDef UartHandle;
+UART_HandleTypeDef stlinkUartHandle;
 
 void board_init(void) {
   // Init clock, implemented in board.h
@@ -90,6 +91,7 @@ void board_init(void) {
   __HAL_RCC_GPIOH_CLK_ENABLE();
 
   UART_CLK_EN();
+  ST_LINK_UART_CLK_EN();
 
   /* Enable Instruction cache */
   HAL_ICACHE_Enable();
@@ -106,7 +108,7 @@ void board_init(void) {
 
   // LED
   GPIO_InitStruct.Pin = LED_PIN;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(LED_PORT, &GPIO_InitStruct);
 
@@ -139,6 +141,27 @@ void board_init(void) {
   UartHandle.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   UartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   HAL_UART_Init(&UartHandle);
+
+  // Uart
+  GPIO_InitStruct.Pin = ST_LINK_UART_TX_PIN | ST_LINK_UART_RX_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  GPIO_InitStruct.Alternate = ST_LINK_UART_GPIO_AF;
+  HAL_GPIO_Init(ST_LINK_UART_GPIO_PORT, &GPIO_InitStruct);
+
+  stlinkUartHandle.Instance = ST_LINK_UART_DEV;
+  stlinkUartHandle.Init.BaudRate = CFG_BOARD_UART_BAUDRATE;
+  stlinkUartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+  stlinkUartHandle.Init.StopBits = UART_STOPBITS_1;
+  stlinkUartHandle.Init.Parity = UART_PARITY_NONE;
+  stlinkUartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  stlinkUartHandle.Init.Mode = UART_MODE_TX_RX;
+  stlinkUartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+  stlinkUartHandle.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  stlinkUartHandle.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  stlinkUartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  HAL_UART_Init(&stlinkUartHandle);
 
   /* Configure USB GPIOs */
   /* Configure DM DP Pins */
@@ -208,8 +231,19 @@ void board_init(void) {
   __HAL_RCC_USBPHYC_CLK_ENABLE();
 
   /* Enable USB power on Pwrctrl CR2 register */
-  HAL_PWREx_EnableVddUSB();
-  HAL_PWREx_EnableUSBHSTranceiverSupply();
+  if (__HAL_RCC_PWR_IS_CLK_DISABLED()) {
+      __HAL_RCC_PWR_CLK_ENABLE();
+      HAL_PWREx_EnableVddUSB();
+
+      /* Configure VOSR register of USB. */
+      HAL_PWREx_EnableUSBHSTranceiverSupply();
+      __HAL_RCC_PWR_CLK_DISABLE();
+  } else {
+      HAL_PWREx_EnableVddUSB();
+
+      /* Configure VOSR register of USB. */
+      HAL_PWREx_EnableUSBHSTranceiverSupply();
+  }
 
   /*Configuring the SYSCFG registers OTG_HS PHY*/
   HAL_SYSCFG_EnableOTGPHY(SYSCFG_OTG_HS_PHY_ENABLE);
@@ -222,7 +256,7 @@ void board_init(void) {
 #endif // USB_OTG_FS
 
   /* Non-standard VBus sense settings */
-  board_vbus_sense_init();
+  // board_vbus_sense_init();
 }
 
 //--------------------------------------------------------------------+
@@ -258,7 +292,7 @@ int board_uart_read(uint8_t *buf, int len) {
 }
 
 int board_uart_write(void const *buf, int len) {
-  HAL_UART_Transmit(&UartHandle, (uint8_t *) (uintptr_t) buf, len, 0xffff);
+  HAL_UART_Transmit(&stlinkUartHandle, (uint8_t *) (uintptr_t) buf, len, 0xffff);
   return len;
 }
 
