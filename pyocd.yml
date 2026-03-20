@@ -1,2 +1,2 @@
 pack:
-  - ./.micromamba/envs/idp/packs/Keil.STM32U5xx_DFP.3.2.0.pack
+  - ./.micromamba/packs/Keil.STM32U5xx_DFP.3.2.0.pack
