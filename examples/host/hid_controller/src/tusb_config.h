@@ -115,6 +115,8 @@
 
 #define CFG_TUH_HID_EP_BUFSIZE      64
 
+#define CFG_TUH_XINPUT 1
+
 #ifdef __cplusplus
  }
 #endif

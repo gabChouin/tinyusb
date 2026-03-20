@@ -1,0 +1,3 @@
+[submodule "src/lib/tusb_xinput"]
+	path = src/lib/tusb_xinput
+	url = https://github.com/sparkmicro/tusb_xinput.git

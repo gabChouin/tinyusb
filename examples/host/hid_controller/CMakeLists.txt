@@ -25,6 +25,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
+target_sources(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../../../src/lib/tusb_xinput/xinput_host.c
+)
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../../../src/lib/tusb_xinput
+)
+
 # Configure compilation flags and libraries for the example without RTOS.
 # See the corresponding function in hw/bsp/FAMILY/family.cmake for details.
 family_configure_host_example(${PROJECT_NAME} noos)
